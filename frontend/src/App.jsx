@@ -7,6 +7,7 @@ import DropZone from './components/DropZone';
 import FileList from './components/FileList';
 import PreviewPanel from './components/PreviewPanel';
 import DownloadPanel from './components/DownloadPanel';
+import SupportModal from './components/SupportModal';
 
 // Konfigurasi endpoint API secara dinamis untuk mode Production (Railway) dan Development (Local Proxy)
 const API_BASE = import.meta.env.PROD 
@@ -19,6 +20,7 @@ export default function App() {
   const [sessionId, setSessionId] = useState(null);
   const [previewFile, setPreviewFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   // Status Summary Grid (untuk di sidebar upload)
   const totalCount = files.length;
@@ -140,6 +142,8 @@ export default function App() {
   const handleDownloadZip = () => {
     if (!sessionId) return;
     window.location.href = `${API_BASE}/download/${sessionId}`;
+    // Picu kemunculan pop-up traktir kopi
+    setIsSupportOpen(true);
   };
 
   // Unduh berkas markdown tunggal
@@ -158,6 +162,8 @@ export default function App() {
       // Download via backend API
       window.location.href = `${API_BASE}/download/${sessionId}?fileId=${file.id}`;
     }
+    // Picu kemunculan pop-up traktir kopi
+    setIsSupportOpen(true);
   };
 
   const handlePreviewFile = (file) => {
@@ -451,6 +457,9 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Pop-up Apresiasi Traktir Kopi */}
+      <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
     </div>
   );
 }
