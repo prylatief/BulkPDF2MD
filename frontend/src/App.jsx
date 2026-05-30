@@ -29,6 +29,7 @@ export default function App() {
   const [accentColor, setAccentColor] = useState('emerald'); // 'emerald', 'blue', 'purple'
   const [processingMode, setProcessingMode] = useState('sequential'); // 'sequential', 'parallel'
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [autoClear, setAutoClear] = useState(false);
 
   // Efek memicu popup panduan otomatis jika user baru pertama kali membuka website
   useEffect(() => {
@@ -160,6 +161,13 @@ export default function App() {
     window.location.href = `${API_BASE}/download/${sessionId}`;
     // Picu kemunculan pop-up traktir kopi
     setIsSupportOpen(true);
+
+    // Jika auto-clear aktif, bersihkan seluruh antrean setelah 1.5 detik (menunggu download dimulai di browser)
+    if (autoClear) {
+      setTimeout(() => {
+        handleClearAll();
+      }, 1500);
+    }
   };
 
   // Unduh berkas markdown tunggal
@@ -554,6 +562,8 @@ export default function App() {
         onChangeAccent={setAccentColor}
         processingMode={processingMode}
         onChangeProcessingMode={setProcessingMode}
+        autoClear={autoClear}
+        onChangeAutoClear={setAutoClear}
       />
 
       {/* Pop-up Panduan Masuk Awal (AI Guide) */}

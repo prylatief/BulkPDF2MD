@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { X, Settings, ShieldAlert, Check, Palette, Cpu } from 'lucide-react';
 
-export default function SettingsModal({ isOpen, onClose, accentColor, onChangeAccent, processingMode, onChangeProcessingMode }) {
-  const [autoClear, setAutoClear] = useState(false);
+export default function SettingsModal({ isOpen, onClose, accentColor, onChangeAccent, processingMode, onChangeProcessingMode, autoClear, onChangeAutoClear }) {
 
   if (!isOpen) return null;
 
@@ -80,7 +79,7 @@ export default function SettingsModal({ isOpen, onClose, accentColor, onChangeAc
                 className={`py-2 px-3 rounded-lg border text-xs text-center transition-all font-mono
                   ${processingMode === 'sequential'
                     ? 'bg-emerald-950/30 border-emerald-900/50 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)] font-bold'
-                    : 'bg-zinc-950/40 border-zinc-850 text-zinc-450 hover:text-zinc-350'
+                    : 'bg-zinc-950/40 border-zinc-850 text-zinc-450 hover:text-zinc-355'
                   }`}
               >
                 Sequential (Aman)
@@ -112,7 +111,7 @@ export default function SettingsModal({ isOpen, onClose, accentColor, onChangeAc
               </span>
             </div>
             <button
-              onClick={() => setAutoClear(!autoClear)}
+              onClick={() => onChangeAutoClear(!autoClear)}
               className={`w-9 h-5 rounded-full p-0.5 transition-colors focus:outline-none
                 ${autoClear ? 'bg-emerald-500' : 'bg-zinc-800'}`}
             >
