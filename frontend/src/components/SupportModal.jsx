@@ -49,24 +49,24 @@ export default function SupportModal({ isOpen, onClose }) {
         {/* Pilihan Donasi/Dukungan */}
         <div className="mt-6 space-y-2.5">
           <a
-            href="https://saweria.co/prylatief" // Target donasi saweria default user
+            href="http://lynk.id/iktifadzatipry/7lx8190d7mkg/checkout" // Link Lynk.id checkout milik user
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-extrabold text-sm transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:shadow-[0_0_30px_rgba(245,158,11,0.3)]"
           >
             <Coffee className="w-4 h-4 fill-zinc-950 stroke-[2.5]" />
-            <span>Traktir Kopi di Saweria</span>
+            <span>Traktir Kopi di Lynk.id</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
 
           <a
-            href="https://ko-fi.com/prylatief"
+            href="https://teer.id/prylatief" // Link Teer.id milik user
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-950 text-zinc-300 hover:text-zinc-100 font-bold text-sm transition-all"
           >
             <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
-            <span>Dukung via Ko-fi</span>
+            <span>Dukung via Teer.id</span>
             <ExternalLink className="w-3.5 h-3.5 text-zinc-500" />
           </a>
 
