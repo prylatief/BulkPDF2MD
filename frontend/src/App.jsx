@@ -8,6 +8,11 @@ import FileList from './components/FileList';
 import PreviewPanel from './components/PreviewPanel';
 import DownloadPanel from './components/DownloadPanel';
 
+// Konfigurasi endpoint API secara dinamis untuk mode Production (Railway) dan Development (Local Proxy)
+const API_BASE = import.meta.env.PROD 
+  ? 'https://bulkpdf2md-production.up.railway.app/api' 
+  : '/api';
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('upload'); // 'upload', 'preview', 'download'
   const [files, setFiles] = useState([]);
@@ -73,7 +78,7 @@ export default function App() {
       const formData = new FormData();
       formData.append('files', fileToProcess.rawFile);
 
-      const response = await fetch('/api/convert', {
+      const response = await fetch(`${API_BASE}/convert`, {
         method: 'POST',
         body: formData
       });
@@ -134,7 +139,7 @@ export default function App() {
   // Unduh zip massal dari backend
   const handleDownloadZip = () => {
     if (!sessionId) return;
-    window.location.href = `/api/download/${sessionId}`;
+    window.location.href = `${API_BASE}/download/${sessionId}`;
   };
 
   // Unduh berkas markdown tunggal
@@ -151,7 +156,7 @@ export default function App() {
       URL.revokeObjectURL(url);
     } else {
       // Download via backend API
-      window.location.href = `/api/download/${sessionId}?fileId=${file.id}`;
+      window.location.href = `${API_BASE}/download/${sessionId}?fileId=${file.id}`;
     }
   };
 
