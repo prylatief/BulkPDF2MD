@@ -7,11 +7,12 @@ const { convertBulkPdf, downloadConvertedFiles } = require('./controllers/conver
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Konfigurasi CORS agar frontend React (Vite) bisa mengakses backend
+// Konfigurasi CORS super-aman & kompatibel penuh untuk menembus semua pembatasan browser
 app.use(cors({
-  origin: '*', // Di produksi, ganti dengan domain frontend tertentu
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
+  origin: true, // Secara dinamis memantulkan origin pemanggil (Vercel, localhost, dll)
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
 }));
 
 app.use(express.json());
