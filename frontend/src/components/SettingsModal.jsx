@@ -19,9 +19,15 @@ export default function SettingsModal({ isOpen, onClose, accentColor, onChangeAc
         onClick={onClose}
       />
 
-      {/* Modal Card */}
-      <div className="relative bg-[#0b0c13] border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200 z-10">
+      {/* Modal Card - Premium Liquid Glass */}
+      <div className="relative bg-zinc-950/30 border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-[0_0_80px_rgba(0,0,0,0.6),_0_0_40px_rgba(0,230,118,0.08)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-200 z-10 overflow-hidden group">
         
+        {/* Reflection Light Sweep Effect */}
+        <div className="absolute inset-0 w-[600px] h-[600px] bg-gradient-to-tr from-white/0 via-white/5 to-white/0 -translate-x-[300px] -translate-y-[300px] rotate-45 pointer-events-none transition-all duration-1000 group-hover:translate-x-[400px] group-hover:translate-y-[400px]"></div>
+
+        {/* Inner Micro-bevel reflection line */}
+        <div className="absolute inset-[1px] rounded-2xl border border-white/5 pointer-events-none"></div>
+
         {/* Tombol Close */}
         <button
           onClick={onClose}

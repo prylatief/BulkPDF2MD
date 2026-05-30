@@ -18,8 +18,15 @@ export default function GuideModal({ isOpen, onClose }) {
         onClick={handleClose}
       />
 
-      {/* Modal Card */}
-      <div className="relative bg-[#0b0c13] border border-emerald-900/40 rounded-2xl max-w-2xl w-full p-6 shadow-[0_0_60px_rgba(0,230,118,0.15)] animate-in fade-in zoom-in-95 duration-200 z-10 overflow-hidden flex flex-col max-h-[90vh]">
+      {/* Modal Card - Premium Liquid Glass */}
+      <div className="relative bg-zinc-950/30 border border-white/10 rounded-2xl max-w-2xl w-full p-6 shadow-[0_0_80px_rgba(0,0,0,0.6),_0_0_45px_rgba(0,230,118,0.08)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-200 z-10 overflow-hidden flex flex-col max-h-[90vh] group">
+        
+        {/* Reflection Light Sweep Effect */}
+        <div className="absolute inset-0 w-[800px] h-[800px] bg-gradient-to-tr from-white/0 via-white/5 to-white/0 -translate-x-[400px] -translate-y-[400px] rotate-45 pointer-events-none transition-all duration-1000 group-hover:translate-x-[500px] group-hover:translate-y-[500px]"></div>
+
+        {/* Inner Micro-bevel reflection line */}
+        <div className="absolute inset-[1px] rounded-2xl border border-white/5 pointer-events-none"></div>
+
         {/* Glow effect */}
         <div className="absolute -top-20 -left-20 w-52 h-52 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
