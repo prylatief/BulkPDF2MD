@@ -10,6 +10,7 @@ import DownloadPanel from './components/DownloadPanel';
 import SupportModal from './components/SupportModal';
 import HowItWorksModal from './components/HowItWorksModal';
 import SettingsModal from './components/SettingsModal';
+import GuideModal from './components/GuideModal';
 
 // Konfigurasi endpoint API secara dinamis untuk mode Production (Railway) dan Development (Local Proxy)
 const API_BASE = import.meta.env.PROD 
@@ -27,6 +28,15 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [accentColor, setAccentColor] = useState('emerald'); // 'emerald', 'blue', 'purple'
   const [processingMode, setProcessingMode] = useState('sequential'); // 'sequential', 'parallel'
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+
+  // Efek memicu popup panduan otomatis jika user baru pertama kali membuka website
+  useEffect(() => {
+    const hasSeenGuide = localStorage.getItem('hasSeenGuide');
+    if (!hasSeenGuide) {
+      setIsGuideOpen(true);
+    }
+  }, []);
 
   // Status Summary Grid (untuk di sidebar upload)
   const totalCount = files.length;
@@ -485,6 +495,9 @@ export default function App() {
         processingMode={processingMode}
         onChangeProcessingMode={setProcessingMode}
       />
+
+      {/* Pop-up Panduan Masuk Awal (AI Guide) */}
+      <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
     </div>
   );
 }
