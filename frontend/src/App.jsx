@@ -8,6 +8,8 @@ import FileList from './components/FileList';
 import PreviewPanel from './components/PreviewPanel';
 import DownloadPanel from './components/DownloadPanel';
 import SupportModal from './components/SupportModal';
+import HowItWorksModal from './components/HowItWorksModal';
+import SettingsModal from './components/SettingsModal';
 
 // Konfigurasi endpoint API secara dinamis untuk mode Production (Railway) dan Development (Local Proxy)
 const API_BASE = import.meta.env.PROD 
@@ -21,6 +23,10 @@ export default function App() {
   const [previewFile, setPreviewFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [accentColor, setAccentColor] = useState('emerald'); // 'emerald', 'blue', 'purple'
+  const [processingMode, setProcessingMode] = useState('sequential'); // 'sequential', 'parallel'
 
   // Status Summary Grid (untuk di sidebar upload)
   const totalCount = files.length;
@@ -254,10 +260,16 @@ export default function App() {
 
           {/* Ikon Kanan */}
           <div className="flex items-center space-x-3.5">
-            <button className="text-xs text-zinc-400 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 px-3 py-1.5 rounded font-medium hover:text-zinc-200 transition-colors">
+            <button 
+              onClick={() => setIsHowItWorksOpen(true)}
+              className="text-xs text-zinc-400 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 px-3 py-1.5 rounded font-medium hover:text-zinc-200 transition-colors"
+            >
               How it works
             </button>
-            <button className="p-2 rounded bg-zinc-950 border border-zinc-900 text-zinc-500 hover:text-zinc-300 transition-colors">
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 rounded bg-zinc-950 border border-zinc-900 text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
               <Settings className="w-4 h-4" />
             </button>
           </div>
@@ -460,6 +472,19 @@ export default function App() {
 
       {/* Pop-up Apresiasi Traktir Kopi */}
       <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
+
+      {/* Pop-up Cara Kerja */}
+      <HowItWorksModal isOpen={isHowItWorksOpen} onClose={() => setIsHowItWorksOpen(false)} />
+
+      {/* Pop-up Pengaturan */}
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+        accentColor={accentColor}
+        onChangeAccent={setAccentColor}
+        processingMode={processingMode}
+        onChangeProcessingMode={setProcessingMode}
+      />
     </div>
   );
 }
