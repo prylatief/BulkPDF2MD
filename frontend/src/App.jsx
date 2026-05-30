@@ -208,19 +208,79 @@ export default function App() {
     setActiveTab('upload');
   };
 
+  const t = {
+    emerald: {
+      text: 'text-emerald-400',
+      text300: 'text-emerald-300',
+      bg: 'bg-emerald-500',
+      bgHover: 'hover:bg-emerald-400',
+      border: 'border-emerald-500',
+      borderMuted: 'border-emerald-900/40',
+      borderMuted30: 'border-emerald-900/30',
+      borderMuted50: 'border-emerald-900/50',
+      bgMuted: 'bg-emerald-950/40',
+      bgMuted30: 'bg-emerald-950/30',
+      selectionBg: 'selection:bg-emerald-500/20',
+      selectionText: 'selection:text-emerald-300',
+      shadow: 'shadow-[0_0_15px_rgba(16,185,129,0.15)]',
+      shadow10: 'shadow-[0_0_20px_rgba(16,185,129,0.1)]',
+      shadow20: 'shadow-[0_0_15px_rgba(16,185,129,0.2)]',
+      glowBg: 'bg-emerald-500/5',
+      activeTab: 'text-emerald-400 border-b-2 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.05)]'
+    },
+    blue: {
+      text: 'text-blue-400',
+      text300: 'text-blue-300',
+      bg: 'bg-blue-500',
+      bgHover: 'hover:bg-blue-400',
+      border: 'border-blue-500',
+      borderMuted: 'border-blue-900/40',
+      borderMuted30: 'border-blue-900/30',
+      borderMuted50: 'border-blue-900/50',
+      bgMuted: 'bg-blue-950/40',
+      bgMuted30: 'bg-blue-950/30',
+      selectionBg: 'selection:bg-blue-500/20',
+      selectionText: 'selection:text-blue-300',
+      shadow: 'shadow-[0_0_15px_rgba(59,130,246,0.15)]',
+      shadow10: 'shadow-[0_0_20px_rgba(59,130,246,0.1)]',
+      shadow20: 'shadow-[0_0_15px_rgba(59,130,246,0.2)]',
+      glowBg: 'bg-blue-500/5',
+      activeTab: 'text-blue-400 border-b-2 border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.05)]'
+    },
+    purple: {
+      text: 'text-purple-400',
+      text300: 'text-purple-300',
+      bg: 'bg-purple-500',
+      bgHover: 'hover:bg-purple-400',
+      border: 'border-purple-500',
+      borderMuted: 'border-purple-900/40',
+      borderMuted30: 'border-purple-900/30',
+      borderMuted50: 'border-purple-900/50',
+      bgMuted: 'bg-purple-950/40',
+      bgMuted30: 'bg-purple-950/30',
+      selectionBg: 'selection:bg-purple-500/20',
+      selectionText: 'selection:text-purple-300',
+      shadow: 'shadow-[0_0_15px_rgba(168,85,247,0.15)]',
+      shadow10: 'shadow-[0_0_20px_rgba(168,85,247,0.1)]',
+      shadow20: 'shadow-[0_0_15px_rgba(168,85,247,0.2)]',
+      glowBg: 'bg-purple-500/5',
+      activeTab: 'text-purple-400 border-b-2 border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.05)]'
+    }
+  }[accentColor];
+
   return (
-    <div className="min-h-screen flex flex-col justify-between selection:bg-emerald-500/20 selection:text-emerald-300">
+    <div className={`min-h-screen flex flex-col justify-between ${t.selectionBg} ${t.selectionText}`}>
       
       {/* Header Premium */}
       <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur sticky top-0 z-40 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3.5 cursor-pointer" onClick={handleClearAll}>
-            <div className="p-2 rounded-lg bg-emerald-950/40 text-emerald-400 border border-emerald-900/40 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+            <div className={`p-2 rounded-lg ${t.bgMuted} ${t.text} ${t.borderMuted} ${t.shadow}`}>
               <Terminal className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
               <span className="font-extrabold text-zinc-100 tracking-wide text-lg font-mono">
-                BulkPDF<span className="text-emerald-400">2MD</span>
+                BulkPDF<span className={t.text}>2MD</span>
               </span>
               <span className="text-[10px] text-zinc-500 font-mono block tracking-wider uppercase -mt-1">
                 v1.0.0 local
@@ -235,7 +295,7 @@ export default function App() {
                 onClick={() => setActiveTab('upload')}
                 className={`px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-all uppercase
                   ${activeTab === 'upload' 
-                    ? 'bg-zinc-800 text-emerald-400 border-b-2 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.05)]' 
+                    ? `bg-zinc-800 ${t.activeTab}` 
                     : 'text-zinc-400 hover:text-zinc-200'}`}
               >
                 Upload
@@ -251,7 +311,7 @@ export default function App() {
                 disabled={doneCount === 0}
                 className={`px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-all uppercase disabled:opacity-40 disabled:cursor-not-allowed
                   ${activeTab === 'preview' 
-                    ? 'bg-zinc-800 text-emerald-400 border-b-2 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.05)]' 
+                    ? `bg-zinc-800 ${t.activeTab}` 
                     : 'text-zinc-400 hover:text-zinc-200'}`}
               >
                 Preview
@@ -260,7 +320,7 @@ export default function App() {
                 onClick={() => setActiveTab('download')}
                 className={`px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-all uppercase
                   ${activeTab === 'download' 
-                    ? 'bg-zinc-800 text-emerald-400 border-b-2 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.05)]' 
+                    ? `bg-zinc-800 ${t.activeTab}` 
                     : 'text-zinc-400 hover:text-zinc-200'}`}
               >
                 Download
@@ -295,12 +355,12 @@ export default function App() {
             {/* Teks Kiri */}
             <div className="space-y-8">
               <div className="space-y-4">
-                <span className="text-xs font-extrabold tracking-widest text-emerald-400 uppercase font-mono bg-emerald-950/30 border border-emerald-900/50 px-3 py-1 rounded-full inline-block">
+                <span className={`text-xs font-extrabold tracking-widest ${t.text} uppercase font-mono ${t.bgMuted30} ${t.borderMuted50} px-3 py-1 rounded-full inline-block`}>
                   PDF TO MARKDOWN
                 </span>
                 <h1 className="text-4xl md:text-5xl font-extrabold text-zinc-100 tracking-tight leading-none uppercase font-sans">
                   BULK CONVERT <br />
-                  PDF TO <span className="text-emerald-400">MARKDOWN</span>
+                  PDF TO <span className={t.text}>MARKDOWN</span>
                 </h1>
                 <p className="text-zinc-400 text-base md:text-lg max-w-lg leading-relaxed">
                   Konversi banyak dokumen PDF sekaligus menjadi file Markdown bersih dan terstruktur dalam hitungan detik. 100% aman, privat, dan berjalan sepenuhnya di server lokal Anda.
@@ -310,19 +370,19 @@ export default function App() {
               {/* Fitur Kunci */}
               <div className="grid grid-cols-2 gap-4 text-xs font-mono text-zinc-500">
                 <div className="flex items-center space-x-2.5">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <ShieldCheck className={`w-5 h-5 ${t.text} shrink-0`} />
                   <span>No data stored</span>
                 </div>
                 <div className="flex items-center space-x-2.5">
-                  <Zap className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <Zap className={`w-5 h-5 ${t.text} shrink-0`} />
                   <span>Secure processing</span>
                 </div>
                 <div className="flex items-center space-x-2.5">
-                  <Code className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <Code className={`w-5 h-5 ${t.text} shrink-0`} />
                   <span>Developer first</span>
                 </div>
                 <div className="flex items-center space-x-2.5">
-                  <ArrowRight className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <ArrowRight className={`w-5 h-5 ${t.text} shrink-0`} />
                   <span>Lightning fast</span>
                 </div>
               </div>
@@ -366,11 +426,11 @@ export default function App() {
                   <span className="text-[10px] font-bold tracking-widest text-zinc-500 font-mono mt-3 uppercase">PDF</span>
                 </div>
                 <div className="flex items-center justify-center">
-                  <ArrowRight className="w-8 h-8 text-emerald-400 stroke-[1.5] animate-pulse" />
+                  <ArrowRight className={`w-8 h-8 ${t.text} stroke-[1.5] animate-pulse`} />
                 </div>
-                <div className="flex flex-col items-center justify-center p-6 bg-zinc-950 border border-emerald-950/40 rounded-xl w-32 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-                  <Code className="w-12 h-12 text-emerald-400" />
-                  <span className="text-[10px] font-bold tracking-widest text-emerald-400 font-mono mt-3 uppercase">MD</span>
+                <div className={`flex flex-col items-center justify-center p-6 bg-zinc-950 ${t.borderMuted} rounded-xl w-32 ${t.shadow10}`}>
+                  <Code className={`w-12 h-12 ${t.text}`} />
+                  <span className={`text-[10px] font-bold tracking-widest ${t.text} font-mono mt-3 uppercase`}>MD</span>
                 </div>
               </div>
             </div>
@@ -403,8 +463,8 @@ export default function App() {
                     <div className="text-lg font-bold text-blue-400 mt-1">{processingCount}</div>
                   </div>
                   <div className="bg-zinc-950/60 p-2.5 rounded border border-zinc-900">
-                    <div className="text-xs text-emerald-400 font-medium">DONE</div>
-                    <div className="text-lg font-bold text-emerald-400 mt-1">{doneCount}</div>
+                    <div className={`text-xs ${t.text} font-medium`}>DONE</div>
+                    <div className={`text-lg font-bold ${t.text} mt-1`}>{doneCount}</div>
                   </div>
                   <div className="bg-zinc-950/60 p-2.5 rounded border border-zinc-900">
                     <div className="text-xs text-rose-500 font-medium">ERR</div>
@@ -421,7 +481,7 @@ export default function App() {
               {doneCount > 0 && (
                 <button
                   onClick={() => setActiveTab('download')}
-                  className="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                  className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg ${t.bg} ${t.bgHover} text-zinc-950 font-bold transition-all ${t.shadow20}`}
                 >
                   <span>Go to Download Page ({doneCount})</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
