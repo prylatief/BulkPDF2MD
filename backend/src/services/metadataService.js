@@ -61,11 +61,7 @@ function generateRis(item, defaultTitle = 'Untitled Article') {
   const lines = [];
   lines.push('TY  - JOUR');
 
-  // Judul (Title)
-  const title = (item.title && item.title[0]) || defaultTitle;
-  lines.push(`TI  - ${title}`);
-
-  // Penulis (Authors)
+  // Penulis (Authors) - diletakkan di atas sesuai format web pembanding
   if (item.author && Array.isArray(item.author)) {
     item.author.forEach((auth) => {
       if (auth.family && auth.given) {
@@ -78,23 +74,15 @@ function generateRis(item, defaultTitle = 'Untitled Article') {
     });
   }
 
-  // Nama Jurnal (Journal Name)
+  // Judul (Title)
+  const title = (item.title && item.title[0]) || defaultTitle;
+  lines.push(`TI  - ${title}`);
+
+  // Nama Jurnal (Journal Name) - output T2 dan JO untuk kompatibilitas penuh
   const journal = (item['container-title'] && item['container-title'][0]) || '';
   if (journal) {
     lines.push(`JO  - ${journal}`);
-  }
-
-  // Tahun Terbit (Publication Year)
-  let year = '';
-  if (item['published-print'] && item['published-print']['date-parts']) {
-    year = item['published-print']['date-parts'][0][0];
-  } else if (item['published-online'] && item['published-online']['date-parts']) {
-    year = item['published-online']['date-parts'][0][0];
-  } else if (item.created && item.created['date-parts']) {
-    year = item.created['date-parts'][0][0];
-  }
-  if (year) {
-    lines.push(`PY  - ${year}`);
+    lines.push(`T2  - ${journal}`);
   }
 
   // Volume
@@ -112,10 +100,26 @@ function generateRis(item, defaultTitle = 'Untitled Article') {
     lines.push(`SP  - ${item.page}`);
   }
 
-  // DOI
+  // Tahun Terbit (Publication Year)
+  let year = '';
+  if (item['published-print'] && item['published-print']['date-parts']) {
+    year = item['published-print']['date-parts'][0][0];
+  } else if (item['published-online'] && item['published-online']['date-parts']) {
+    year = item['published-online']['date-parts'][0][0];
+  } else if (item.created && item.created['date-parts']) {
+    year = item.created['date-parts'][0][0];
+  }
+  
+  if (year) {
+    lines.push(`PY  - ${year}`);
+    lines.push(`DA  - ${year}`);
+  }
+
+  // DOI & URL (Dual URL untuk kompatibilitas Mendeley)
   if (item.DOI) {
     lines.push(`DO  - ${item.DOI}`);
-    lines.push(`UR  - https://doi.org/10.xxxx/xxxx`.replace('10.xxxx/xxxx', item.DOI));
+    lines.push(`UR  - https://doi.org/${item.DOI}`);
+    lines.push(`UR  - http://dx.doi.org/${item.DOI}`);
   } else if (item.URL) {
     lines.push(`UR  - ${item.URL}`);
   }
