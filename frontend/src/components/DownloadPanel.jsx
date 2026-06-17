@@ -17,6 +17,9 @@ export default function DownloadPanel({ files, sessionId, onBackToUpload, onClea
   const totalZipSizeBytes = successfulFiles.reduce((acc, f) => acc + (f.sizeMdBytes || 0), 0);
   const formattedZipSize = totalZipSizeBytes > 0 ? formatSize(totalZipSizeBytes * 0.9) : '0 KB'; // Estimasi kompresi ZIP 90%
 
+  const filesWithRis = files.filter(f => f.status === 'SUCCESS' && f.risContent);
+  const combinedRisContent = filesWithRis.map(f => f.risContent.trim()).join('\n');
+
   const handleCopyText = (file) => {
     navigator.clipboard.writeText(file.markdown || '');
     setCopiedFileId(file.id);
@@ -51,16 +54,36 @@ export default function DownloadPanel({ files, sessionId, onBackToUpload, onClea
               <span>Download All ({successfulFiles.length}) as ZIP</span>
             </button>
             
-            {files.some(f => f.status === 'SUCCESS' && f.risContent) && (
-              <button
-                onClick={() => {
-                  window.location.href = `${API_BASE}/download/${sessionId}?format=ris`;
-                }}
-                className="flex items-center justify-center space-x-2 py-2.5 px-6 rounded-lg bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 text-emerald-400 hover:text-emerald-350 transition-all font-bold text-xs"
-              >
-                <Download className="w-4 h-4 stroke-[2.5]" />
-                <span>Download Combined RIS for Mendeley</span>
-              </button>
+            {filesWithRis.length > 0 && (
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                <button
+                  onClick={() => {
+                    const combinedVirtualFile = {
+                      name: 'citations.ris',
+                      risContent: combinedRisContent,
+                      metadata: {
+                        title: `Combined Citations (${filesWithRis.length} Jurnal)`,
+                        authors: [`Total: ${filesWithRis.length} artikel ilmiah`],
+                        journal: 'Siap di-import ke Mendeley / Zotero'
+                      }
+                    };
+                    onViewRis(combinedVirtualFile);
+                  }}
+                  className="flex-1 flex items-center justify-center space-x-1.5 py-2.5 px-4 rounded-lg bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 text-zinc-300 hover:text-zinc-150 transition-all font-bold text-xs"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>View Combined RIS</span>
+                </button>
+                <button
+                  onClick={() => {
+                    window.location.href = `${API_BASE}/download/${sessionId}?format=ris`;
+                  }}
+                  className="flex-1 flex items-center justify-center space-x-1.5 py-2.5 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all font-bold text-xs"
+                >
+                  <Download className="w-4 h-4 stroke-[2.5]" />
+                  <span>Download Combined RIS</span>
+                </button>
+              </div>
             )}
             
             <p className="text-[11px] text-zinc-500 font-mono mt-1 uppercase tracking-wider text-center md:text-right">
