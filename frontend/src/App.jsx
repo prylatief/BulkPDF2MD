@@ -13,10 +13,8 @@ import SettingsModal from './components/SettingsModal';
 import GuideModal from './components/GuideModal';
 import RisPreviewModal from './components/RisPreviewModal';
 
-// Konfigurasi endpoint API secara dinamis untuk mode Production (Railway) dan Development (Local Proxy)
-const API_BASE = import.meta.env.PROD 
-  ? 'https://bulkpdf2md-production.up.railway.app/api' 
-  : '/api';
+// Konfigurasi endpoint API relatif untuk Serverless Vercel (satu domain) dan Development Local Proxy
+const API_BASE = '/api';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('upload'); // 'upload', 'preview', 'download'
