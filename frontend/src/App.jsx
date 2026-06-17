@@ -21,7 +21,6 @@ const API_BASE = import.meta.env.PROD
 export default function App() {
   const [activeTab, setActiveTab] = useState('upload'); // 'upload', 'preview', 'download'
   const [files, setFiles] = useState([]);
-  const [sessionId, setSessionId] = useState(null);
   const [previewFile, setPreviewFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
@@ -100,8 +99,7 @@ export default function App() {
       const formData = new FormData();
       formData.append('files', fileToProcess.rawFile);
 
-      const url = sessionId ? `${API_BASE}/convert?sessionId=${sessionId}` : `${API_BASE}/convert`;
-      const response = await fetch(url, {
+      const response = await fetch(`${API_BASE}/convert`, {
         method: 'POST',
         body: formData
       });
@@ -115,11 +113,6 @@ export default function App() {
 
       const result = await response.json();
       const processedFile = result.files[0];
-
-      // Ampan Session ID dari backend untuk zip download
-      if (result.sessionId) {
-        setSessionId(result.sessionId);
-      }
 
       // 3. Update status berkas sukses atau gagal berdasarkan respons backend
       setFiles(prev => prev.map(f => {
@@ -162,47 +155,68 @@ export default function App() {
     }
   };
 
-  // Unduh zip massal dari backend
-  const handleDownloadZip = () => {
-    if (!sessionId) return;
-    window.location.href = `${API_BASE}/download/${sessionId}`;
-    // Picu kemunculan pop-up traktir kopi
-    setIsSupportOpen(true);
+  // Unduh zip massal dari backend secara stateless
+  const handleDownloadZip = async () => {
+    const successfulFiles = files.filter(f => f.status === 'SUCCESS');
+    if (successfulFiles.length === 0) return;
 
-    // Jika auto-clear aktif, bersihkan seluruh antrean setelah 1.5 detik (menunggu download dimulai di browser)
-    if (autoClear) {
-      setTimeout(() => {
-        handleClearAll();
-      }, 1500);
-    }
-  };
+    try {
+      const response = await fetch(`${API_BASE}/download/zip`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          files: successfulFiles.map(f => ({
+            filename: f.mdFilename,
+            content: f.markdown
+          }))
+        })
+      });
 
-  // Unduh berkas markdown atau RIS tunggal
-  const handleDownloadSingle = (file, format = 'md') => {
-    if (!sessionId) {
-      // Fallback client-side download jika session belum tersinkronisasi
-      const isRis = format === 'ris';
-      const content = isRis ? (file.risContent || '') : file.markdown;
-      const mime = isRis ? 'application/x-research-info-systems;charset=utf-8' : 'text/markdown;charset=utf-8';
-      const ext = isRis ? '.ris' : '.md';
+      if (!response.ok) {
+        throw new Error('Gagal mengunduh ZIP');
+      }
 
-      const blob = new Blob([content], { type: mime });
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-      link.download = `${baseName}${ext}`;
+      link.download = 'BulkPDF2MD-Converted.zip';
       link.click();
       URL.revokeObjectURL(url);
-    } else {
-      // Download via backend API
-      const formatQuery = format === 'ris' ? 'format=ris' : '';
-      const fileIdQuery = file.id ? `fileId=${file.id}` : '';
-      const queryParts = [fileIdQuery, formatQuery].filter(Boolean);
-      const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
 
-      window.location.href = `${API_BASE}/download/${sessionId}${queryString}`;
+      // Picu kemunculan pop-up traktir kopi
+      setIsSupportOpen(true);
+
+      // Jika auto-clear aktif, bersihkan seluruh antrean setelah 1.5 detik
+      if (autoClear) {
+        setTimeout(() => {
+          handleClearAll();
+        }, 1500);
+      }
+    } catch (err) {
+      console.error('ZIP download error:', err);
+      alert('Gagal mengunduh file ZIP!');
     }
+  };
+
+  // Unduh berkas markdown atau RIS secara langsung di browser (client-side)
+  const handleDownloadSingle = (file, format = 'md') => {
+    const isRis = format === 'ris';
+    const content = isRis ? (file.risContent || '') : file.markdown;
+    const mime = isRis ? 'application/x-research-info-systems;charset=utf-8' : 'text/markdown;charset=utf-8';
+    const ext = isRis ? '.ris' : '.md';
+
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+    link.download = `${baseName}${ext}`;
+    link.click();
+    URL.revokeObjectURL(url);
+
     // Picu kemunculan pop-up traktir kopi
     setIsSupportOpen(true);
   };
@@ -228,7 +242,6 @@ export default function App() {
 
   const handleClearAll = () => {
     setFiles([]);
-    setSessionId(null);
     setPreviewFile(null);
     setActiveTab('upload');
   };
@@ -562,7 +575,6 @@ export default function App() {
         {files.length > 0 && activeTab === 'download' && (
           <DownloadPanel 
             files={files}
-            sessionId={sessionId}
             onBackToUpload={() => setActiveTab('upload')}
             onClearAll={handleClearAll}
             onPreviewFile={handlePreviewFile}

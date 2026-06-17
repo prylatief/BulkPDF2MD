@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle, Download, Eye, Copy, Trash2, ArrowLeft, AlertTriangle, FileText, Check } from 'lucide-react';
 
-export default function DownloadPanel({ files, sessionId, onBackToUpload, onClearAll, onPreviewFile, onDownloadSingle, onDownloadZip, onViewRis, API_BASE }) {
+export default function DownloadPanel({ files, onBackToUpload, onClearAll, onPreviewFile, onDownloadSingle, onDownloadZip, onViewRis, API_BASE }) {
   const [copiedFileId, setCopiedFileId] = useState(null);
 
   const successfulFiles = files.filter(f => f.status === 'SUCCESS');
@@ -82,7 +82,16 @@ export default function DownloadPanel({ files, sessionId, onBackToUpload, onClea
                 </button>
                 <button
                   onClick={() => {
-                    window.location.href = `${API_BASE}/download/${sessionId}?format=ris`;
+                    const combinedVirtualFile = {
+                      name: 'citations.ris',
+                      risContent: combinedRisContent,
+                      metadata: {
+                        title: `Combined Citations (${filesWithRis.length} Jurnal)`,
+                        authors: [`Total: ${filesWithRis.length} artikel ilmiah`],
+                        journal: 'Siap di-import ke Mendeley / Zotero'
+                      }
+                    };
+                    onDownloadSingle(combinedVirtualFile, 'ris');
                   }}
                   className="flex-1 flex items-center justify-center space-x-1.5 py-2.5 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all font-bold text-xs"
                 >

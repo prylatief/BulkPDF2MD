@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { uploadBulk } = require('./middlewares/uploadMiddleware');
-const { convertBulkPdf, downloadConvertedFiles } = require('./controllers/convertController');
+const { convertBulkPdf, downloadZipStateless } = require('./controllers/convertController');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,7 +24,7 @@ app.get('/api/health', (req, res) => {
 
 // Endpoint Utama
 app.post('/api/convert', uploadBulk, convertBulkPdf);
-app.get('/api/download/:id', downloadConvertedFiles);
+app.post('/api/download/zip', downloadZipStateless);
 
 // Error Handling Global
 app.use((err, req, res, next) => {
@@ -40,9 +40,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(` BulkPDF2MD Backend Server is running on port ${PORT} `);
-  console.log(` Health Check: http://localhost:${PORT}/api/health    `);
-  console.log(`====================================================`);
-});
+// Jalankan port listener hanya jika berjalan lokal (bukan serverless Vercel)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(` BulkPDF2MD Backend Server is running on port ${PORT} `);
+    console.log(` Health Check: http://localhost:${PORT}/api/health    `);
+    console.log(`====================================================`);
+  });
+}
+
+module.exports = app;
