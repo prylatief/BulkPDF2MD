@@ -258,6 +258,56 @@ export default function App() {
     setIsSupportOpen(true);
   };
 
+  // Menyimpan perubahan metadata hasil edit visual ke state & localStorage history
+  const handleSaveMetadata = (fileId, updatedMetadata, updatedRisContent) => {
+    // 1. Update status file aktif di antrean
+    setFiles(prev => prev.map(f => {
+      if (f.id === fileId) {
+        // Jika file sedang di-preview, update juga objek preview-nya agar perubahannya langsung tergambar di layar preview
+        if (previewFile && previewFile.id === fileId) {
+          setPreviewFile(prevPreview => ({
+            ...prevPreview,
+            metadata: updatedMetadata,
+            risContent: updatedRisContent
+          }));
+        }
+        // Jika file sedang dibuka pratinjau RIS-nya, update juga agar modal tahu perubahannya
+        if (risPreviewFile && risPreviewFile.id === fileId) {
+          setRisPreviewFile(prevRis => ({
+            ...prevRis,
+            metadata: updatedMetadata,
+            risContent: updatedRisContent
+          }));
+        }
+        return {
+          ...f,
+          metadata: updatedMetadata,
+          risContent: updatedRisContent
+        };
+      }
+      return f;
+    }));
+
+    // 2. Update riwayat konversi di localStorage
+    try {
+      const historyStr = localStorage.getItem('conversionHistory') || '[]';
+      const history = JSON.parse(historyStr);
+      const updatedHistory = history.map(item => {
+        if (item.id === fileId) {
+          return {
+            ...item,
+            metadata: updatedMetadata,
+            risContent: updatedRisContent
+          };
+        }
+        return item;
+      });
+      localStorage.setItem('conversionHistory', JSON.stringify(updatedHistory));
+    } catch (err) {
+      console.error('Failed to update local history with new metadata:', err);
+    }
+  };
+
   const handlePreviewFile = (file) => {
     setPreviewFile(file);
     setActiveTab('preview');
@@ -681,6 +731,7 @@ export default function App() {
         onClose={() => setIsRisPreviewOpen(false)}
         file={risPreviewFile}
         onDownloadSingle={handleDownloadSingle}
+        onSaveMetadata={handleSaveMetadata}
       />
 
       {/* Pop-up Riwayat Konversi */}
