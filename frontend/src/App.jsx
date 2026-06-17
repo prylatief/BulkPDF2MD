@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FileText, ShieldCheck, Zap, Code, LayoutGrid, Settings, 
-  ArrowRight, FileSpreadsheet, RefreshCw, Upload, Eye, HelpCircle, Terminal
+  ArrowRight, FileSpreadsheet, RefreshCw, Upload, Eye, HelpCircle, Terminal, Clock
 } from 'lucide-react';
 import DropZone from './components/DropZone';
 import FileList from './components/FileList';
@@ -12,6 +12,7 @@ import HowItWorksModal from './components/HowItWorksModal';
 import SettingsModal from './components/SettingsModal';
 import GuideModal from './components/GuideModal';
 import RisPreviewModal from './components/RisPreviewModal';
+import HistoryModal from './components/HistoryModal';
 
 // Konfigurasi endpoint API relatif untuk Serverless Vercel (satu domain) dan Development Local Proxy
 const API_BASE = '/api';
@@ -30,6 +31,7 @@ export default function App() {
   const [autoClear, setAutoClear] = useState(false);
   const [risPreviewFile, setRisPreviewFile] = useState(null);
   const [isRisPreviewOpen, setIsRisPreviewOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   // Efek memicu popup panduan otomatis jika user baru pertama kali membuka website
   useEffect(() => {
@@ -73,6 +75,38 @@ export default function App() {
     }
   }, [files, isProcessing]);
 
+  // Menyimpan riwayat konversi ke localStorage
+  const saveToLocalHistory = (file) => {
+    try {
+      const historyStr = localStorage.getItem('conversionHistory') || '[]';
+      const history = JSON.parse(historyStr);
+      
+      const filtered = history.filter(h => h.name !== file.name);
+      
+      const newItem = {
+        id: file.id,
+        name: file.name,
+        size: file.size,
+        pages: file.pages,
+        markdown: file.markdown,
+        sizeMdBytes: file.sizeMdBytes,
+        hasMetadata: file.hasMetadata,
+        metadata: file.metadata,
+        risContent: file.risContent,
+        timestamp: Date.now()
+      };
+      
+      filtered.unshift(newItem);
+      if (filtered.length > 50) {
+        filtered.pop();
+      }
+      
+      localStorage.setItem('conversionHistory', JSON.stringify(filtered));
+    } catch (err) {
+      console.error('Failed to save local history:', err);
+    }
+  };
+
   // Fungsi Pemrosesan Upload & Konversi ke Backend
   const processFileConversion = async (fileToProcess) => {
     setIsProcessing(true);
@@ -115,7 +149,7 @@ export default function App() {
       // 3. Update status berkas sukses atau gagal berdasarkan respons backend
       setFiles(prev => prev.map(f => {
         if (f.id === fileToProcess.id) {
-          return {
+          const updated = {
             ...f,
             id: processedFile.id, // Sinkronisasikan ID client-side dengan UUID unik backend
             status: processedFile.status,
@@ -129,6 +163,11 @@ export default function App() {
             metadata: processedFile.metadata,
             risContent: processedFile.risContent
           };
+
+          if (updated.status === 'SUCCESS') {
+            saveToLocalHistory(updated);
+          }
+          return updated;
         }
         return f;
       }));
@@ -328,6 +367,12 @@ export default function App() {
             {/* Mobile Actions */}
             <div className="flex items-center space-x-2 md:hidden">
               <button 
+                onClick={() => setIsHistoryOpen(true)}
+                className="text-[10px] text-zinc-400 border border-zinc-800 bg-zinc-950 px-2 py-1.5 rounded font-medium hover:text-zinc-200 transition-colors"
+              >
+                Riwayat
+              </button>
+              <button 
                 onClick={() => setIsHowItWorksOpen(true)}
                 className="text-[10px] text-zinc-400 border border-zinc-800 bg-zinc-950 px-2 py-1.5 rounded font-medium hover:text-zinc-200 transition-colors"
               >
@@ -384,6 +429,13 @@ export default function App() {
 
           {/* Ikon Kanan (Desktop) */}
           <div className="hidden md:flex items-center space-x-3.5">
+            <button 
+              onClick={() => setIsHistoryOpen(true)}
+              className="flex items-center space-x-1.5 text-xs text-zinc-400 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 px-3 py-1.5 rounded font-medium hover:text-zinc-200 transition-colors"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Riwayat</span>
+            </button>
             <button 
               onClick={() => setIsHowItWorksOpen(true)}
               className="text-xs text-zinc-400 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 px-3 py-1.5 rounded font-medium hover:text-zinc-200 transition-colors"
@@ -628,6 +680,14 @@ export default function App() {
         isOpen={isRisPreviewOpen}
         onClose={() => setIsRisPreviewOpen(false)}
         file={risPreviewFile}
+        onDownloadSingle={handleDownloadSingle}
+      />
+
+      {/* Pop-up Riwayat Konversi */}
+      <HistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onPreviewFile={handlePreviewFile}
         onDownloadSingle={handleDownloadSingle}
       />
     </div>
