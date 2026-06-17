@@ -59,7 +59,8 @@ export default function DownloadPanel({ files, sessionId, onBackToUpload, onClea
 
       {/* Tabel File Rekapitulasi */}
       <div className="bg-zinc-900/20 border border-zinc-800/80 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-zinc-950/80 text-[10px] text-zinc-500 font-bold uppercase tracking-wider border-b border-zinc-800">
@@ -109,7 +110,7 @@ export default function DownloadPanel({ files, sessionId, onBackToUpload, onClea
                         {file.status}
                       </span>
                       {file.status === 'ERROR' && (
-                        <span className="text-[10px] text-rose-400/85 mt-1 font-sans">
+                        <span className="text-[10px] text-rose-450 mt-1 font-sans">
                           {file.errorType === 'SCAN_ONLY' ? 'Scan-only (No Text)' :
                            file.errorType === 'ENCRYPTED' ? 'Password Protected' : 
                            file.errorMessage || 'Failed'}
@@ -158,6 +159,81 @@ export default function DownloadPanel({ files, sessionId, onBackToUpload, onClea
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View */}
+        <div className="block md:hidden divide-y divide-zinc-850">
+          {files.map((file) => (
+            <div key={file.id} className="p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center space-x-3 min-w-0">
+                  <FileText className={`w-4 h-4 shrink-0
+                    ${file.status === 'ERROR' ? 'text-rose-500/50' : 'text-emerald-500/80'}`}
+                  />
+                  <span className="truncate text-zinc-200 text-sm font-medium tracking-wide">{file.name}</span>
+                </div>
+                <span className={`inline-block text-[9px] font-extrabold tracking-wider px-2 py-0.5 rounded border shrink-0
+                  ${file.status === 'SUCCESS'
+                    ? 'text-emerald-400 bg-emerald-950/20 border-emerald-900/40'
+                    : 'text-rose-500 bg-rose-950/20 border-rose-900/40'
+                  }`}
+                >
+                  {file.status}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-zinc-400 font-mono">
+                <div>Pages: <span className="text-zinc-200">{file.status === 'SUCCESS' ? file.pages : '0'}</span></div>
+                <div>Size: <span className="text-zinc-200">{file.status === 'SUCCESS' ? formatSize(file.sizeMdBytes) : '—'}</span></div>
+              </div>
+
+              {file.status === 'ERROR' && (
+                <div className="text-[11px] text-rose-450 bg-rose-950/20 border border-rose-900/40 p-2 rounded">
+                  {file.errorType === 'SCAN_ONLY' ? 'Scan-only (No Text)' :
+                   file.errorType === 'ENCRYPTED' ? 'Password Protected' : 
+                   file.errorMessage || 'Failed'}
+                </div>
+              )}
+
+              {file.status === 'SUCCESS' && (
+                <div className="flex items-center justify-end space-x-2 pt-2 border-t border-zinc-850/50">
+                  <button
+                    onClick={() => onPreviewFile(file)}
+                    title="Preview Markdown"
+                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors text-xs"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Preview</span>
+                  </button>
+                  <button
+                    onClick={() => onDownloadSingle(file)}
+                    title="Download Markdown File"
+                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors text-xs"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
+                  </button>
+                  <button
+                    onClick={() => handleCopyText(file)}
+                    title="Copy Markdown Text"
+                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors text-xs"
+                  >
+                    {copiedFileId === file.id ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 

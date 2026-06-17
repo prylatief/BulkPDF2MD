@@ -62,10 +62,10 @@ export default function FileList({ files, onRemoveFile, onPreviewFile, onDownloa
           files.map((file) => (
             <div 
               key={file.id} 
-              className="flex items-center justify-between p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/50 hover:border-zinc-700/60 transition-all duration-200"
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/50 hover:border-zinc-700/60 transition-all duration-200 gap-3"
             >
               {/* Info Kiri */}
-              <div className="flex items-center space-x-3.5 min-w-0 flex-1 mr-4">
+              <div className="flex items-center space-x-3.5 min-w-0 flex-1 mr-0 sm:mr-4 w-full">
                 <div className={`p-2 rounded bg-zinc-950/80 border
                   ${file.status === 'ERROR' ? 'border-rose-900/30 text-rose-400' : ''}
                   ${file.status === 'SUCCESS' ? 'border-emerald-900/30 text-emerald-400' : ''}
@@ -94,7 +94,7 @@ export default function FileList({ files, onRemoveFile, onPreviewFile, onDownloa
                       </span>
                     )}
                     {file.status === 'ERROR' && (
-                      <span className="text-[11px] text-rose-400 truncate max-w-[200px] flex items-center gap-1">
+                      <span className="text-[11px] text-rose-450 truncate max-w-[180px] sm:max-w-[200px] flex items-center gap-1">
                         <AlertTriangle className="w-3.5 h-3.5 inline" />
                         {file.errorType === 'SCAN_ONLY' ? 'Scan-only (No text)' : 
                          file.errorType === 'ENCRYPTED' ? 'Password protected' : 
@@ -116,7 +116,7 @@ export default function FileList({ files, onRemoveFile, onPreviewFile, onDownloa
               </div>
 
               {/* Aksi Kanan */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 justify-end w-full sm:w-auto border-t border-zinc-850 pt-2.5 sm:pt-0 sm:border-none">
                 {getStatusBadge(file)}
 
                 {/* Tombol Aksi berdasarkan status */}

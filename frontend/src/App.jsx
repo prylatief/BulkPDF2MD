@@ -280,28 +280,46 @@ export default function App() {
     <div className={`min-h-screen flex flex-col justify-between ${t.selectionBg} ${t.selectionText}`}>
       
       {/* Header Premium */}
-      <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur sticky top-0 z-40 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3.5 cursor-pointer" onClick={handleClearAll}>
-            <div className={`p-2 rounded-lg ${t.bgMuted} ${t.text} ${t.borderMuted} ${t.shadow}`}>
-              <Terminal className="w-5 h-5 stroke-[2.5]" />
+      <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur sticky top-0 z-40 px-4 py-4 md:px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center justify-between w-full md:w-auto">
+            <div className="flex items-center space-x-3.5 cursor-pointer" onClick={handleClearAll}>
+              <div className={`p-2 rounded-lg ${t.bgMuted} ${t.text} ${t.borderMuted} ${t.shadow}`}>
+                <Terminal className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <span className="font-extrabold text-zinc-100 tracking-wide text-lg font-mono">
+                  BulkPDF<span className={t.text}>2MD</span>
+                </span>
+                <span className="text-[10px] text-zinc-500 font-mono block tracking-wider uppercase -mt-1">
+                  v1.0.0 local
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="font-extrabold text-zinc-100 tracking-wide text-lg font-mono">
-                BulkPDF<span className={t.text}>2MD</span>
-              </span>
-              <span className="text-[10px] text-zinc-500 font-mono block tracking-wider uppercase -mt-1">
-                v1.0.0 local
-              </span>
+
+            {/* Mobile Actions */}
+            <div className="flex items-center space-x-2 md:hidden">
+              <button 
+                onClick={() => setIsHowItWorksOpen(true)}
+                className="text-[10px] text-zinc-400 border border-zinc-800 bg-zinc-950 px-2 py-1.5 rounded font-medium hover:text-zinc-200 transition-colors"
+              >
+                Help
+              </button>
+              <button 
+                onClick={() => setIsSettingsOpen(true)}
+                className="p-1.5 rounded bg-zinc-950 border border-zinc-900 text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
             </div>
           </div>
 
           {/* Navigasi Tab */}
           {files.length > 0 && (
-            <nav className="flex space-x-1.5 p-1 bg-zinc-900/60 border border-zinc-850 rounded-lg">
+            <nav className="flex space-x-1.5 p-1 bg-zinc-900/60 border border-zinc-850 rounded-lg w-full md:w-auto justify-center">
               <button
                 onClick={() => setActiveTab('upload')}
-                className={`px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-all uppercase
+                className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-all uppercase text-center
                   ${activeTab === 'upload' 
                     ? `bg-zinc-800 ${t.activeTab}` 
                     : 'text-zinc-400 hover:text-zinc-200'}`}
@@ -317,7 +335,7 @@ export default function App() {
                   }
                 }}
                 disabled={doneCount === 0}
-                className={`px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-all uppercase disabled:opacity-40 disabled:cursor-not-allowed
+                className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-all uppercase text-center disabled:opacity-40 disabled:cursor-not-allowed
                   ${activeTab === 'preview' 
                     ? `bg-zinc-800 ${t.activeTab}` 
                     : 'text-zinc-400 hover:text-zinc-200'}`}
@@ -326,7 +344,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab('download')}
-                className={`px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-all uppercase
+                className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-semibold tracking-wider transition-all uppercase text-center
                   ${activeTab === 'download' 
                     ? `bg-zinc-800 ${t.activeTab}` 
                     : 'text-zinc-400 hover:text-zinc-200'}`}
@@ -336,8 +354,8 @@ export default function App() {
             </nav>
           )}
 
-          {/* Ikon Kanan */}
-          <div className="flex items-center space-x-3.5">
+          {/* Ikon Kanan (Desktop) */}
+          <div className="hidden md:flex items-center space-x-3.5">
             <button 
               onClick={() => setIsHowItWorksOpen(true)}
               className="text-xs text-zinc-400 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 px-3 py-1.5 rounded font-medium hover:text-zinc-200 transition-colors"
@@ -401,7 +419,7 @@ export default function App() {
               </div>
 
               {/* Ringkasan Parameter */}
-              <div className="grid grid-cols-4 gap-6 pt-4 border-t border-zinc-900 max-w-lg text-center font-mono">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6 pt-4 border-t border-zinc-900 max-w-lg text-center font-mono">
                 <div>
                   <div className="text-[10px] text-zinc-600 uppercase font-bold">FAST</div>
                   <div className="text-lg font-bold text-zinc-300 mt-0.5">~2s / fl</div>
@@ -457,7 +475,7 @@ export default function App() {
                 <h4 className="text-xs font-bold text-zinc-400 tracking-wider uppercase">
                   CONVERSION STATS
                 </h4>
-                <div className="grid grid-cols-5 gap-2 text-center font-mono">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center font-mono">
                   <div className="bg-zinc-950/60 p-2.5 rounded border border-zinc-900">
                     <div className="text-xs text-zinc-500 font-medium">TOTAL</div>
                     <div className="text-lg font-bold text-zinc-200 mt-1">{totalCount}</div>
