@@ -173,9 +173,9 @@ async function downloadConvertedFiles(req, res) {
           return res.status(400).json({ error: 'Tidak ada berkas yang terdeteksi sebagai jurnal ilmiah dengan sitasi RIS!' });
         }
 
-        // Hubungkan setiap sitasi dengan satu CRLF baru (\r\n) tanpa menyisakan baris kosong
-        const combinedRis = filesWithRis.map(f => f.risContent.trim()).join('\n');
-        const formattedCombinedRis = combinedRis.replace(/\r?\n/g, '\r\n') + '\r\n'; // Tambahkan trailing newline di akhir file sesuai standar RIS
+        // Hubungkan setiap sitasi dengan baris kosong sesuai standar RIS
+        const combinedRis = filesWithRis.map(f => f.risContent.trim()).join('\n\n');
+        const formattedCombinedRis = combinedRis.replace(/\r?\n/g, '\r\n') + '\r\n\r\n'; // Tambahkan trailing newline di akhir file sesuai standar RIS
         res.setHeader('Content-Type', 'application/x-research-info-systems; charset=utf-8');
         res.setHeader('Content-Disposition', 'attachment; filename="citations.ris"');
         return res.send(formattedCombinedRis);

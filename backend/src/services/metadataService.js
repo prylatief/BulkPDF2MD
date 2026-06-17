@@ -109,9 +109,7 @@ function generateRis(item, defaultTitle = 'Untitled Article') {
 
   // Halaman (Pages)
   if (item.page) {
-    const pages = item.page.split('-');
-    if (pages[0]) lines.push(`SP  - ${pages[0]}`);
-    if (pages[1]) lines.push(`EP  - ${pages[1]}`);
+    lines.push(`SP  - ${item.page}`);
   }
 
   // DOI
