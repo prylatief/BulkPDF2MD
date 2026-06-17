@@ -162,9 +162,10 @@ async function downloadConvertedFiles(req, res) {
         }
 
         const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+        const formattedRis = file.risContent.replace(/\r?\n/g, '\r\n');
         res.setHeader('Content-Type', 'application/x-research-info-systems; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(baseName)}.ris"`);
-        return res.send(file.risContent);
+        return res.send(formattedRis);
       } else {
         // Gabungan
         const filesWithRis = session.files.filter(f => f.status === 'SUCCESS' && f.risContent);
@@ -172,10 +173,12 @@ async function downloadConvertedFiles(req, res) {
           return res.status(400).json({ error: 'Tidak ada berkas yang terdeteksi sebagai jurnal ilmiah dengan sitasi RIS!' });
         }
 
-        const combinedRis = filesWithRis.map(f => f.risContent).join('\n\n');
+        // Hubungkan setiap sitasi dengan satu CRLF baru (\r\n) tanpa menyisakan baris kosong
+        const combinedRis = filesWithRis.map(f => f.risContent.trim()).join('\n');
+        const formattedCombinedRis = combinedRis.replace(/\r?\n/g, '\r\n') + '\r\n'; // Tambahkan trailing newline di akhir file sesuai standar RIS
         res.setHeader('Content-Type', 'application/x-research-info-systems; charset=utf-8');
         res.setHeader('Content-Disposition', 'attachment; filename="citations.ris"');
-        return res.send(combinedRis);
+        return res.send(formattedCombinedRis);
       }
     }
 
