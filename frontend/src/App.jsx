@@ -132,7 +132,10 @@ export default function App() {
             markdown: processedFile.markdown || '',
             sizeMdBytes: processedFile.sizeMdBytes || 0,
             errorType: processedFile.errorType,
-            errorMessage: processedFile.errorMessage
+            errorMessage: processedFile.errorMessage,
+            hasMetadata: processedFile.hasMetadata,
+            metadata: processedFile.metadata,
+            risContent: processedFile.risContent
           };
         }
         return f;

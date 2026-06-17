@@ -9,7 +9,7 @@ const { createZipArchive } = require('../services/zipService');
 const sessionStore = new Map();
 
 // Menghapus data sesi setelah 1 jam untuk mencegah kebocoran memori RAM
-const SESSION_TTL_MS = 60 * 60 * 1000; 
+const SESSION_TTL_MS = 60 * 60 * 1000;
 
 /**
  * Endpoint POST /api/convert
@@ -34,7 +34,7 @@ async function convertBulkPdf(req, res) {
       try {
         let parsedData;
         const isDocx = file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || originalName.endsWith('.docx');
-        
+
         if (isDocx) {
           parsedData = await parseDocxToMarkdown(file.buffer);
         } else {
