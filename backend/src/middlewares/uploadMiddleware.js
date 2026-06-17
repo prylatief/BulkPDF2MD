@@ -3,12 +3,17 @@ const multer = require('multer');
 // Gunakan penyimpanan RAM (Buffer) untuk performa tanpa menulis ke disk
 const storage = multer.memoryStorage();
 
-// Validasi tipe file hanya PDF
+// Validasi tipe file PDF dan Word (.docx)
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'application/pdf') {
+  const allowedMimeTypes = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+
+  if (allowedMimeTypes.includes(file.mimetype) || file.originalname.endsWith('.docx') || file.originalname.endsWith('.pdf')) {
     cb(null, true);
   } else {
-    cb(new Error('Format file tidak didukung! Hanya file PDF yang diperbolehkan.'), false);
+    cb(new Error('Format file tidak didukung! Hanya file PDF dan Word (.docx) yang diperbolehkan.'), false);
   }
 };
 

@@ -21,8 +21,12 @@ export default function DropZone({ onFilesSelected }) {
     setIsDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const allowedMimes = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ];
       const selectedFiles = Array.from(e.dataTransfer.files).filter(
-        file => file.type === "application/pdf" || file.name.endsWith('.pdf')
+        file => allowedMimes.includes(file.type) || file.name.endsWith('.pdf') || file.name.endsWith('.docx')
       );
       if (selectedFiles.length > 0) {
         onFilesSelected(selectedFiles);
@@ -32,8 +36,12 @@ export default function DropZone({ onFilesSelected }) {
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
+      const allowedMimes = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ];
       const selectedFiles = Array.from(e.target.files).filter(
-        file => file.type === "application/pdf" || file.name.endsWith('.pdf')
+        file => allowedMimes.includes(file.type) || file.name.endsWith('.pdf') || file.name.endsWith('.docx')
       );
       if (selectedFiles.length > 0) {
         onFilesSelected(selectedFiles);
@@ -62,7 +70,7 @@ export default function DropZone({ onFilesSelected }) {
         ref={fileInputRef}
         type="file"
         multiple
-        accept=".pdf,application/pdf"
+        accept=".pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         onChange={handleFileChange}
         className="hidden"
       />
@@ -76,7 +84,7 @@ export default function DropZone({ onFilesSelected }) {
 
         <div className="space-y-1.5">
           <h3 className="text-zinc-200 font-medium tracking-wide text-lg">
-            DRAG & DROP PDF FILES HERE
+            DRAG & DROP PDF OR WORD FILES HERE
           </h3>
           <p className="text-zinc-500 text-sm">
             or <span className="text-emerald-400 font-semibold group-hover:underline">click to select files</span>
@@ -84,7 +92,7 @@ export default function DropZone({ onFilesSelected }) {
         </div>
 
         <div className="flex flex-wrap gap-2 justify-center text-[11px] text-zinc-600 font-mono pt-2">
-          <span className="px-2 py-0.5 rounded bg-zinc-950 border border-zinc-900">PDF ONLY</span>
+          <span className="px-2 py-0.5 rounded bg-zinc-950 border border-zinc-900">PDF & DOCX</span>
           <span className="px-2 py-0.5 rounded bg-zinc-950 border border-zinc-900">MAX 10MB/FILE</span>
           <span className="px-2 py-0.5 rounded bg-zinc-950 border border-zinc-900">UP TO 20 FILES</span>
         </div>

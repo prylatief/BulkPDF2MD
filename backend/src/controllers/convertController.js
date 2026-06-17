@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { parsePdfToMarkdown } = require('../services/pdfService');
+const { parseDocxToMarkdown } = require('../services/docxService');
 const { createZipArchive } = require('../services/zipService');
 
 // Penyimpanan in-memory stateless sederhana untuk menyimpan hasil konversi sementara
@@ -11,18 +12,18 @@ const SESSION_TTL_MS = 60 * 60 * 1000;
 
 /**
  * Endpoint POST /api/convert
- * Mengunggah banyak file PDF sekaligus, memprosesnya secara asinkron, dan menyimpan hasilnya.
+ * Mengunggah banyak file PDF/Word sekaligus, memprosesnya secara asinkron, dan menyimpan hasilnya.
  */
 async function convertBulkPdf(req, res) {
   try {
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: 'Tidak ada file PDF yang diunggah!' });
+      return res.status(400).json({ error: 'Tidak ada file PDF atau Word yang diunggah!' });
     }
 
     const sessionId = crypto.randomUUID();
     const results = [];
 
-    // Proses setiap file PDF
+    // Proses setiap file
     for (const file of req.files) {
       const fileId = crypto.randomUUID();
       const originalName = file.originalname;
@@ -30,7 +31,14 @@ async function convertBulkPdf(req, res) {
       const mdFilename = `${baseName}.md`;
 
       try {
-        const parsedData = await parsePdfToMarkdown(file.buffer);
+        let parsedData;
+        const isDocx = file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || originalName.endsWith('.docx');
+        
+        if (isDocx) {
+          parsedData = await parseDocxToMarkdown(file.buffer);
+        } else {
+          parsedData = await parsePdfToMarkdown(file.buffer);
+        }
 
         if (parsedData.errorType) {
           results.push({
