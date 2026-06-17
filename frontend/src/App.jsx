@@ -100,7 +100,8 @@ export default function App() {
       const formData = new FormData();
       formData.append('files', fileToProcess.rawFile);
 
-      const response = await fetch(`${API_BASE}/convert`, {
+      const url = sessionId ? `${API_BASE}/convert?sessionId=${sessionId}` : `${API_BASE}/convert`;
+      const response = await fetch(url, {
         method: 'POST',
         body: formData
       });

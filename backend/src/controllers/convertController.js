@@ -21,8 +21,21 @@ async function convertBulkPdf(req, res) {
       return res.status(400).json({ error: 'Tidak ada file PDF atau Word yang diunggah!' });
     }
 
-    const sessionId = crypto.randomUUID();
-    const results = [];
+    const { sessionId: querySessionId } = req.query;
+    let sessionId = querySessionId;
+    let results = [];
+    let existingSession = null;
+
+    if (sessionId) {
+      existingSession = sessionStore.get(sessionId);
+    }
+
+    if (!existingSession) {
+      sessionId = crypto.randomUUID();
+    } else {
+      // Duplikasi array file yang sudah sukses dikonversi sebelumnya
+      results = [...existingSession.files];
+    }
 
     // Proses setiap file
     for (const file of req.files) {
@@ -99,16 +112,23 @@ async function convertBulkPdf(req, res) {
       }
     }
 
-    // Simpan hasil konversi di store in-memory
-    sessionStore.set(sessionId, {
-      createdAt: Date.now(),
-      files: results
-    });
+    // Bersihkan timeout lama jika sesi sudah ada untuk menghindari penghapusan dini
+    const existing = sessionStore.get(sessionId);
+    if (existing && existing.timeoutId) {
+      clearTimeout(existing.timeoutId);
+    }
 
     // Jalankan timer untuk menghapus sesi otomatis setelah 1 jam
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       sessionStore.delete(sessionId);
     }, SESSION_TTL_MS);
+
+    // Simpan hasil konversi di store in-memory
+    sessionStore.set(sessionId, {
+      createdAt: existing ? existing.createdAt : Date.now(),
+      files: results,
+      timeoutId: timeoutId
+    });
 
     // Kirim rekap hasil konversi ke frontend
     return res.json({
