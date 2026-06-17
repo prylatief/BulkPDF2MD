@@ -195,8 +195,12 @@ export default function App() {
       URL.revokeObjectURL(url);
     } else {
       // Download via backend API
-      const formatQuery = format === 'ris' ? '&format=ris' : '';
-      window.location.href = `${API_BASE}/download/${sessionId}?fileId=${file.id}${formatQuery}`;
+      const formatQuery = format === 'ris' ? 'format=ris' : '';
+      const fileIdQuery = file.id ? `fileId=${file.id}` : '';
+      const queryParts = [fileIdQuery, formatQuery].filter(Boolean);
+      const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+
+      window.location.href = `${API_BASE}/download/${sessionId}${queryString}`;
     }
     // Picu kemunculan pop-up traktir kopi
     setIsSupportOpen(true);
