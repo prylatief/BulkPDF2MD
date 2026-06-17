@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle, Download, Eye, Copy, Trash2, ArrowLeft, AlertTriangle, FileText, Check } from 'lucide-react';
 
-export default function DownloadPanel({ files, sessionId, onBackToUpload, onClearAll, onPreviewFile, onDownloadSingle, onDownloadZip }) {
+export default function DownloadPanel({ files, sessionId, onBackToUpload, onClearAll, onPreviewFile, onDownloadSingle, onDownloadZip, onViewRis, API_BASE }) {
   const [copiedFileId, setCopiedFileId] = useState(null);
 
   const successfulFiles = files.filter(f => f.status === 'SUCCESS');
@@ -42,15 +42,28 @@ export default function DownloadPanel({ files, sessionId, onBackToUpload, onClea
         </div>
 
         {successfulFiles.length > 0 && (
-          <div className="text-center md:text-right">
+          <div className="flex flex-col gap-3 w-full md:w-auto items-stretch md:items-end">
             <button
               onClick={onDownloadZip}
-              className="flex items-center space-x-2 py-3 px-6 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all font-bold shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] text-sm"
+              className="flex items-center justify-center space-x-2 py-3 px-6 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all font-bold shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] text-sm"
             >
               <Download className="w-5 h-5 stroke-[2.5]" />
               <span>Download All ({successfulFiles.length}) as ZIP</span>
             </button>
-            <p className="text-[11px] text-zinc-500 font-mono mt-2 uppercase tracking-wider">
+            
+            {files.some(f => f.status === 'SUCCESS' && f.risContent) && (
+              <button
+                onClick={() => {
+                  window.location.href = `${API_BASE}/download/${sessionId}?format=ris`;
+                }}
+                className="flex items-center justify-center space-x-2 py-2.5 px-6 rounded-lg bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 text-emerald-400 hover:text-emerald-350 transition-all font-bold text-xs"
+              >
+                <Download className="w-4 h-4 stroke-[2.5]" />
+                <span>Download Combined RIS for Mendeley</span>
+              </button>
+            )}
+            
+            <p className="text-[11px] text-zinc-500 font-mono mt-1 uppercase tracking-wider text-center md:text-right">
               Estimasi ukuran ZIP: {formattedZipSize}
             </p>
           </div>
@@ -123,6 +136,24 @@ export default function DownloadPanel({ files, sessionId, onBackToUpload, onClea
                   <td className="py-4 px-5 text-right">
                     {file.status === 'SUCCESS' ? (
                       <div className="flex items-center justify-end space-x-1">
+                        {file.hasMetadata && onViewRis && (
+                          <>
+                            <button
+                              onClick={() => onViewRis(file)}
+                              title="View RIS Citation"
+                              className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => onDownloadSingle(file, 'ris')}
+                              title="Download RIS Citation File"
+                              className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors"
+                            >
+                              <Download className="w-4 h-4 text-emerald-500/80" />
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={() => onPreviewFile(file)}
                           title="Preview Markdown"
@@ -196,27 +227,42 @@ export default function DownloadPanel({ files, sessionId, onBackToUpload, onClea
               )}
 
               {file.status === 'SUCCESS' && (
-                <div className="flex items-center justify-end space-x-2 pt-2 border-t border-zinc-850/50">
+                <div className="flex flex-wrap items-center justify-end gap-1.5 pt-2 border-t border-zinc-850/50">
+                  {file.hasMetadata && onViewRis && (
+                    <>
+                      <button
+                        onClick={() => onViewRis(file)}
+                        className="flex items-center space-x-1 px-2 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors text-[11px]"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>View RIS</span>
+                      </button>
+                      <button
+                        onClick={() => onDownloadSingle(file, 'ris')}
+                        className="flex items-center space-x-1 px-2 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-450 transition-colors text-[11px]"
+                      >
+                        <Download className="w-3.5 h-3.5 text-emerald-500/80" />
+                        <span>RIS</span>
+                      </button>
+                    </>
+                  )}
                   <button
                     onClick={() => onPreviewFile(file)}
-                    title="Preview Markdown"
-                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors text-xs"
+                    className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors text-xs"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>Preview</span>
                   </button>
                   <button
                     onClick={() => onDownloadSingle(file)}
-                    title="Download Markdown File"
-                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors text-xs"
+                    className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors text-xs"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Download</span>
                   </button>
                   <button
                     onClick={() => handleCopyText(file)}
-                    title="Copy Markdown Text"
-                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors text-xs"
+                    className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors text-xs"
                   >
                     {copiedFileId === file.id ? (
                       <>

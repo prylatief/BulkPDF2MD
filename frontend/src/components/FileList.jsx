@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileText, Eye, Download, X, AlertTriangle, RefreshCw, Clock } from 'lucide-react';
 
-export default function FileList({ files, onRemoveFile, onPreviewFile, onDownloadSingle, onRetryFile }) {
+export default function FileList({ files, onRemoveFile, onPreviewFile, onDownloadSingle, onRetryFile, onViewRis }) {
   // Format ukuran byte ke string KB/MB
   const formatSize = (bytes) => {
     if (!bytes) return '0 B';
@@ -79,10 +79,15 @@ export default function FileList({ files, onRemoveFile, onPreviewFile, onDownloa
                   <p className="text-zinc-200 text-sm font-medium truncate tracking-wide">
                     {file.name}
                   </p>
-                  <div className="flex items-center space-x-2.5 mt-1">
+                  <div className="flex flex-wrap items-center gap-2.5 mt-1">
                     <span className="text-[11px] text-zinc-500 font-mono">
                       {formatSize(file.size)}
                     </span>
+                    {file.hasMetadata && (
+                      <span className="text-[9px] font-bold tracking-wider text-emerald-450 bg-emerald-950/20 border border-emerald-900/40 px-1.5 py-0.5 rounded uppercase font-sans">
+                        📄 Jurnal
+                      </span>
+                    )}
                     {file.status === 'PROCESSING' && (
                       <span className="text-[11px] text-blue-400 font-mono">
                         {file.progress}%
@@ -122,6 +127,15 @@ export default function FileList({ files, onRemoveFile, onPreviewFile, onDownloa
                 {/* Tombol Aksi berdasarkan status */}
                 {file.status === 'SUCCESS' && (
                   <>
+                    {file.hasMetadata && onViewRis && (
+                      <button
+                        onClick={() => onViewRis(file)}
+                        title="View RIS Citation"
+                        className="p-1.5 rounded hover:bg-zinc-850 text-zinc-400 hover:text-emerald-400 transition-colors"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       onClick={() => onPreviewFile(file)}
                       title="Preview Markdown"

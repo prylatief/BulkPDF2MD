@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const { parsePdfToMarkdown } = require('../services/pdfService');
 const { parseDocxToMarkdown } = require('../services/docxService');
+const { processMetadata } = require('../services/metadataService');
 const { createZipArchive } = require('../services/zipService');
 
 // Penyimpanan in-memory stateless sederhana untuk menyimpan hasil konversi sementara
@@ -53,6 +54,14 @@ async function convertBulkPdf(req, res) {
             errorType: parsedData.errorType // 'SCAN_ONLY' atau 'ENCRYPTED'
           });
         } else {
+          // Cari & ekstrak DOI + metadata CrossRef
+          let metadataObj = null;
+          try {
+            metadataObj = await processMetadata(parsedData.markdown, baseName);
+          } catch (metaErr) {
+            console.error('Meta parsing error:', metaErr);
+          }
+
           results.push({
             id: fileId,
             name: originalName,
@@ -61,7 +70,16 @@ async function convertBulkPdf(req, res) {
             pages: parsedData.pages,
             markdown: parsedData.markdown,
             sizeMdBytes: parsedData.sizeMdBytes,
-            status: 'SUCCESS'
+            status: 'SUCCESS',
+            hasMetadata: !!metadataObj,
+            metadata: metadataObj ? {
+              doi: metadataObj.doi,
+              title: metadataObj.title,
+              authors: metadataObj.authors,
+              journal: metadataObj.journal,
+              year: metadataObj.year
+            } : null,
+            risContent: metadataObj ? metadataObj.risContent : null
           });
         }
       } catch (err) {
@@ -104,7 +122,10 @@ async function convertBulkPdf(req, res) {
         sizeMdBytes: f.sizeMdBytes,
         status: f.status,
         errorType: f.errorType,
-        errorMessage: f.errorMessage
+        errorMessage: f.errorMessage,
+        hasMetadata: f.hasMetadata,
+        metadata: f.metadata,
+        risContent: f.risContent
       }))
     });
 
@@ -121,14 +142,44 @@ async function convertBulkPdf(req, res) {
 async function downloadConvertedFiles(req, res) {
   try {
     const sessionId = req.params.id;
-    const { fileId } = req.query;
+    const { fileId, format } = req.query;
 
     const session = sessionStore.get(sessionId);
     if (!session) {
       return res.status(404).json({ error: 'Sesi unduhan tidak ditemukan atau telah kedaluwarsa!' });
     }
 
-    // 1. Opsi Download File Satuan (.md) jika ?fileId=... disediakan
+    // A. Penanganan Download Format RIS (Kutipan Mendeley/Zotero)
+    if (format === 'ris') {
+      if (fileId) {
+        // Satuan
+        const file = session.files.find(f => f.id === fileId);
+        if (!file) {
+          return res.status(404).json({ error: 'File tidak ditemukan!' });
+        }
+        if (!file.risContent) {
+          return res.status(400).json({ error: 'Berkas ini tidak terdeteksi sebagai jurnal ilmiah (tidak memiliki sitasi RIS)!' });
+        }
+
+        const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+        res.setHeader('Content-Type', 'application/x-research-info-systems; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(baseName)}.ris"`);
+        return res.send(file.risContent);
+      } else {
+        // Gabungan
+        const filesWithRis = session.files.filter(f => f.status === 'SUCCESS' && f.risContent);
+        if (filesWithRis.length === 0) {
+          return res.status(400).json({ error: 'Tidak ada berkas yang terdeteksi sebagai jurnal ilmiah dengan sitasi RIS!' });
+        }
+
+        const combinedRis = filesWithRis.map(f => f.risContent).join('\n\n');
+        res.setHeader('Content-Type', 'application/x-research-info-systems; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="citations.ris"');
+        return res.send(combinedRis);
+      }
+    }
+
+    // B. Penanganan Download File Satuan (.md) jika ?fileId=... disediakan
     if (fileId) {
       const file = session.files.find(f => f.id === fileId);
       if (!file) {

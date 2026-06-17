@@ -11,6 +11,7 @@ import SupportModal from './components/SupportModal';
 import HowItWorksModal from './components/HowItWorksModal';
 import SettingsModal from './components/SettingsModal';
 import GuideModal from './components/GuideModal';
+import RisPreviewModal from './components/RisPreviewModal';
 
 // Konfigurasi endpoint API secara dinamis untuk mode Production (Railway) dan Development (Local Proxy)
 const API_BASE = import.meta.env.PROD 
@@ -30,6 +31,8 @@ export default function App() {
   const [processingMode, setProcessingMode] = useState('sequential'); // 'sequential', 'parallel'
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [autoClear, setAutoClear] = useState(false);
+  const [risPreviewFile, setRisPreviewFile] = useState(null);
+  const [isRisPreviewOpen, setIsRisPreviewOpen] = useState(false);
 
   // Efek memicu popup panduan otomatis jika user baru pertama kali membuka website
   useEffect(() => {
@@ -170,21 +173,27 @@ export default function App() {
     }
   };
 
-  // Unduh berkas markdown tunggal
-  const handleDownloadSingle = (file) => {
+  // Unduh berkas markdown atau RIS tunggal
+  const handleDownloadSingle = (file, format = 'md') => {
     if (!sessionId) {
       // Fallback client-side download jika session belum tersinkronisasi
-      const blob = new Blob([file.markdown], { type: 'text/markdown;charset=utf-8' });
+      const isRis = format === 'ris';
+      const content = isRis ? (file.risContent || '') : file.markdown;
+      const mime = isRis ? 'application/x-research-info-systems;charset=utf-8' : 'text/markdown;charset=utf-8';
+      const ext = isRis ? '.ris' : '.md';
+
+      const blob = new Blob([content], { type: mime });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-      link.download = `${baseName}.md`;
+      link.download = `${baseName}${ext}`;
       link.click();
       URL.revokeObjectURL(url);
     } else {
       // Download via backend API
-      window.location.href = `${API_BASE}/download/${sessionId}?fileId=${file.id}`;
+      const formatQuery = format === 'ris' ? '&format=ris' : '';
+      window.location.href = `${API_BASE}/download/${sessionId}?fileId=${file.id}${formatQuery}`;
     }
     // Picu kemunculan pop-up traktir kopi
     setIsSupportOpen(true);
@@ -523,6 +532,10 @@ export default function App() {
                 onPreviewFile={handlePreviewFile}
                 onDownloadSingle={handleDownloadSingle}
                 onRetryFile={handleRetryFile}
+                onViewRis={(file) => {
+                  setRisPreviewFile(file);
+                  setIsRisPreviewOpen(true);
+                }}
               />
             </div>
           </div>
@@ -547,6 +560,11 @@ export default function App() {
             onPreviewFile={handlePreviewFile}
             onDownloadSingle={handleDownloadSingle}
             onDownloadZip={handleDownloadZip}
+            onViewRis={(file) => {
+              setRisPreviewFile(file);
+              setIsRisPreviewOpen(true);
+            }}
+            API_BASE={API_BASE}
           />
         )}
 
@@ -586,6 +604,14 @@ export default function App() {
 
       {/* Pop-up Panduan Masuk Awal (AI Guide) */}
       <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
+
+      {/* Pop-up RIS Preview */}
+      <RisPreviewModal
+        isOpen={isRisPreviewOpen}
+        onClose={() => setIsRisPreviewOpen(false)}
+        file={risPreviewFile}
+        onDownloadSingle={handleDownloadSingle}
+      />
     </div>
   );
 }
