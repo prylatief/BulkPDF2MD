@@ -18,7 +18,13 @@ export default function DownloadPanel({ files, sessionId, onBackToUpload, onClea
   const formattedZipSize = totalZipSizeBytes > 0 ? formatSize(totalZipSizeBytes * 0.9) : '0 KB'; // Estimasi kompresi ZIP 90%
 
   const filesWithRis = files.filter(f => f.status === 'SUCCESS' && f.risContent);
-  const combinedRisContent = filesWithRis.map(f => f.risContent.trim()).join('\n');
+  const combinedRisContent = filesWithRis.map(f => {
+    let content = f.risContent.trim();
+    if (content.endsWith('ER  -')) {
+      content += ' ';
+    }
+    return content;
+  }).join('\n\n');
 
   const handleCopyText = (file) => {
     navigator.clipboard.writeText(file.markdown || '');

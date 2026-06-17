@@ -174,7 +174,13 @@ async function downloadConvertedFiles(req, res) {
         }
 
         // Hubungkan setiap sitasi dengan baris kosong sesuai standar RIS
-        const combinedRis = filesWithRis.map(f => f.risContent.trim()).join('\n\n');
+        const combinedRis = filesWithRis.map(f => {
+          let content = f.risContent.trim();
+          if (content.endsWith('ER  -')) {
+            content += ' ';
+          }
+          return content;
+        }).join('\n\n');
         const formattedCombinedRis = combinedRis.replace(/\r?\n/g, '\r\n') + '\r\n\r\n'; // Tambahkan trailing newline di akhir file sesuai standar RIS
         res.setHeader('Content-Type', 'application/x-research-info-systems; charset=utf-8');
         res.setHeader('Content-Disposition', 'attachment; filename="citations.ris"');
