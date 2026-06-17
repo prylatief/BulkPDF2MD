@@ -1,0 +1,10 @@
+{
+  "name": "bulkpdf2md-root",
+  "version": "1.0.0",
+  "description": "Root package to redirect Railway deployment to backend service",
+  "main": "backend/src/app.js",
+  "scripts": {
+    "postinstall": "npm install --prefix backend",
+    "start": "node backend/src/app.js"
+  }
+}
