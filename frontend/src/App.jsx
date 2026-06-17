@@ -32,6 +32,9 @@ export default function App() {
   const [risPreviewFile, setRisPreviewFile] = useState(null);
   const [isRisPreviewOpen, setIsRisPreviewOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [uploadMode, setUploadMode] = useState('file'); // 'file' atau 'text'
+  const [rawText, setRawText] = useState('');
+  const [isParsingText, setIsParsingText] = useState(false);
 
   // Efek memicu popup panduan otomatis jika user baru pertama kali membuka website
   useEffect(() => {
@@ -104,6 +107,173 @@ export default function App() {
       localStorage.setItem('conversionHistory', JSON.stringify(filtered));
     } catch (err) {
       console.error('Failed to save local history:', err);
+    }
+  };
+
+  const generateRisClient = ({ title, authors, journal, volume, issue, pages, year, doi }) => {
+    const lines = [];
+    lines.push('TY  - JOUR');
+    if (authors && Array.isArray(authors)) {
+      authors.forEach((auth) => {
+        if (auth.trim()) lines.push(`AU  - ${auth.trim()}`);
+      });
+    }
+    if (title) lines.push(`TI  - ${title.trim()}`);
+    if (journal) {
+      lines.push(`JO  - ${journal.trim()}`);
+      lines.push(`T2  - ${journal.trim()}`);
+    }
+    if (volume) lines.push(`VL  - ${volume.trim()}`);
+    if (issue) lines.push(`IS  - ${issue.trim()}`);
+    if (pages) lines.push(`SP  - ${pages.trim()}`);
+    if (year) {
+      lines.push(`PY  - ${year.trim()}`);
+      lines.push(`DA  - ${year.trim()}`);
+    }
+    if (doi) {
+      lines.push(`DO  - ${doi.trim()}`);
+      lines.push(`UR  - https://doi.org/${doi.trim()}`);
+      lines.push(`UR  - http://dx.doi.org/${doi.trim()}`);
+    }
+    lines.push('ER  - ');
+    return lines.join('\n');
+  };
+
+  const splitReferences = (text) => {
+    if (!text) return [];
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const references = [];
+    let currentRef = '';
+    
+    lines.forEach(line => {
+      const isNewRefMarker = /^(?:\[?\d+\]?[\.\s]|\b[a-z]\.[\s]|\•\s)/i.test(line);
+      if (isNewRefMarker) {
+        if (currentRef) references.push(currentRef.trim());
+        currentRef = line;
+      } else {
+        if (currentRef) currentRef += ' ' + line;
+        else currentRef = line;
+      }
+    });
+    
+    if (currentRef) references.push(currentRef.trim());
+    if (references.length <= 1 && lines.length > 1) return lines;
+    return references;
+  };
+
+  const processSingleReference = async (refText, index) => {
+    const doiMatch = refText.match(/\b(10\.\d{4,9}\/[-._;()/:A-Z0-9]+)\b/i);
+    const doi = doiMatch ? doiMatch[1] : null;
+    let metadata = null;
+    let risContent = '';
+    
+    if (doi) {
+      try {
+        const res = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, {
+          headers: { 'User-Agent': 'BulkPDF2MD/1.0 (mailto:prylatief@example.com)' }
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.message) {
+            const item = json.message;
+            const title = (item.title && item.title[0]) || `Sitasi Teks #${index + 1}`;
+            const journal = (item['container-title'] && item['container-title'][0]) || '';
+            const authors = (item.author || []).map(auth => {
+              if (auth.family && auth.given) return `${auth.family}, ${auth.given}`;
+              return auth.family || auth.name || '';
+            }).filter(Boolean);
+            
+            let year = '';
+            if (item['published-print'] && item['published-print']['date-parts']) {
+              year = item['published-print']['date-parts'][0][0];
+            } else if (item['published-online'] && item['published-online']['date-parts']) {
+              year = item['published-online']['date-parts'][0][0];
+            }
+            
+            metadata = { doi, title, authors, journal, year: year.toString() };
+            risContent = generateRisClient({
+              title, authors, journal, volume: item.volume || '', issue: item.issue || '', pages: item.page || '', year: year.toString(), doi
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch CrossRef inside Text to RIS:', err);
+      }
+    }
+    
+    if (!metadata) {
+      const cleanRef = refText.replace(/^(?:\[?\d+\]?[\.\s]|\b[a-z]\.[\s]|\•\s)/i, '').trim();
+      const parts = cleanRef.split('.').map(p => p.trim()).filter(Boolean);
+      let title = cleanRef;
+      let authors = [];
+      let year = '';
+      
+      if (parts.length >= 2) {
+        authors = parts[0].split(/, | dan | & /).map(a => a.trim()).filter(Boolean);
+        const yearMatch = parts[1].match(/\b(19\d{2}|20\d{2})\b/);
+        if (yearMatch) {
+          year = yearMatch[1];
+          if (parts[2]) title = parts[2];
+        } else {
+          title = parts[1];
+        }
+      }
+      
+      if (title.length > 200) title = title.substring(0, 197) + '...';
+      
+      metadata = {
+        doi: doi || '',
+        title: title || `Sitasi Teks #${index + 1}`,
+        authors: authors.length > 0 ? authors : ['Penulis Tidak Dikenal'],
+        journal: '',
+        year: year || ''
+      };
+      risContent = generateRisClient({
+        title: metadata.title, authors: metadata.authors, journal: '', volume: '', issue: '', pages: '', year: metadata.year, doi: doi || ''
+      });
+    }
+    
+    return {
+      id: Math.random().toString(36).substring(2, 9),
+      name: `sitasi-teks-${index + 1}.ris`,
+      mdFilename: `sitasi-teks-${index + 1}.md`,
+      size: refText.length,
+      status: 'SUCCESS',
+      progress: 100,
+      pages: 1,
+      markdown: `### Sitasi Hasil Teks\n\n**Teks Asli:**\n> ${refText}\n\n**Metadata Terurai:**\n- **Judul:** ${metadata.title}\n- **Penulis:** ${metadata.authors.join('; ')}\n- **Tahun:** ${metadata.year}`,
+      sizeMdBytes: refText.length,
+      hasMetadata: true,
+      metadata,
+      risContent
+    };
+  };
+
+  const handleProcessText = async () => {
+    if (!rawText.trim()) return;
+    setIsParsingText(true);
+    try {
+      const entries = splitReferences(rawText);
+      if (entries.length === 0) {
+        alert('Teks kosong atau tidak valid!');
+        setIsParsingText(false);
+        return;
+      }
+      const newFiles = [];
+      const promises = entries.map(async (entry, index) => {
+        const fileObj = await processSingleReference(entry, index);
+        saveToLocalHistory(fileObj);
+        newFiles.push(fileObj);
+      });
+      await Promise.all(promises);
+      setFiles(prev => [...prev, ...newFiles]);
+      setRawText('');
+      setActiveTab('download');
+    } catch (err) {
+      console.error('Error processing text references:', err);
+      alert('Gagal memproses teks referensi!');
+    } finally {
+      setIsParsingText(false);
     }
   };
 
@@ -543,9 +713,57 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Tombol Upload Utama */}
+              {/* Toggle Mode Upload / Teks */}
+              <div className="flex space-x-2 p-1 bg-zinc-900 border border-zinc-850 rounded-lg max-w-md mb-4 font-mono text-[10px] tracking-wider uppercase font-bold shrink-0">
+                <button
+                  onClick={() => setUploadMode('file')}
+                  className={`flex-1 py-2 rounded-md transition-all ${uploadMode === 'file' ? 'bg-zinc-850 text-emerald-400 border border-zinc-800' : 'text-zinc-500 hover:text-zinc-350'}`}
+                >
+                  Unggah Berkas (PDF/DOCX)
+                </button>
+                <button
+                  onClick={() => setUploadMode('text')}
+                  className={`flex-1 py-2 rounded-md transition-all ${uploadMode === 'text' ? 'bg-zinc-850 text-emerald-400 border border-zinc-800' : 'text-zinc-500 hover:text-zinc-350'}`}
+                >
+                  Tempel Teks (Text to RIS)
+                </button>
+              </div>
+
+              {/* Tombol Upload Utama / Form Teks */}
               <div className="max-w-md">
-                <DropZone onFilesSelected={handleFilesSelected} />
+                {uploadMode === 'file' ? (
+                  <DropZone onFilesSelected={handleFilesSelected} />
+                ) : (
+                  <div className="bg-zinc-900/30 border border-zinc-850 rounded-2xl p-5 space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.2)]">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-zinc-500 font-mono tracking-wider uppercase font-bold">Tempel Daftar Sitasi Anda (Satu sitasi per baris)</label>
+                      <textarea
+                        value={rawText}
+                        onChange={(e) => setRawText(e.target.value)}
+                        placeholder="Contoh:&#10;1. Ashfiya Nur Atqiya, et al. Peran Dakwah Islam. 10.62383/aktivisme.v2i2.910&#10;2. Rofiqotul, et al. Dakwah Sebagai Mekanisme Transformasi. 10.59435/menulis.v1i6.400"
+                        rows="6"
+                        className="w-full px-3 py-2.5 bg-zinc-950/80 border border-zinc-800 rounded-lg text-xs text-zinc-300 focus:outline-none focus:border-emerald-500 transition-colors font-mono resize-none leading-relaxed"
+                      />
+                    </div>
+                    <button
+                      onClick={handleProcessText}
+                      disabled={isParsingText || !rawText.trim()}
+                      className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-xs uppercase tracking-wider"
+                    >
+                      {isParsingText ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>MEMPROSES TEKS...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>Proses Teks & Rapikan RIS</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Ringkasan Parameter */}
@@ -598,7 +816,55 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Kiri: Area Dropzone & Statistik */}
             <div className="lg:col-span-1 space-y-6">
-              <DropZone onFilesSelected={handleFilesSelected} />
+              {/* Toggle Mode Upload / Teks di Sidebar */}
+              <div className="flex space-x-2 p-1 bg-zinc-900 border border-zinc-850 rounded-lg w-full mb-4 font-mono text-[9px] tracking-wider uppercase font-bold shrink-0">
+                <button
+                  onClick={() => setUploadMode('file')}
+                  className={`flex-1 py-1.5 rounded transition-all ${uploadMode === 'file' ? 'bg-zinc-850 text-emerald-400 border border-zinc-800' : 'text-zinc-500 hover:text-zinc-350'}`}
+                >
+                  Berkas
+                </button>
+                <button
+                  onClick={() => setUploadMode('text')}
+                  className={`flex-1 py-1.5 rounded transition-all ${uploadMode === 'text' ? 'bg-zinc-850 text-emerald-400 border border-zinc-800' : 'text-zinc-500 hover:text-zinc-350'}`}
+                >
+                  Teks
+                </button>
+              </div>
+
+              {uploadMode === 'file' ? (
+                <DropZone onFilesSelected={handleFilesSelected} />
+              ) : (
+                <div className="bg-zinc-900/30 border border-zinc-850 rounded-xl p-4 space-y-3 shadow-[0_0_20px_rgba(0,0,0,0.15)]">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] text-zinc-500 font-mono tracking-wider uppercase font-bold">Tempel Daftar Sitasi</label>
+                    <textarea
+                      value={rawText}
+                      onChange={(e) => setRawText(e.target.value)}
+                      placeholder="Tempel sitasi Anda di sini..."
+                      rows="4"
+                      className="w-full px-2.5 py-2 bg-zinc-950/80 border border-zinc-800 rounded-lg text-[11px] text-zinc-350 focus:outline-none focus:border-emerald-500 transition-colors font-mono resize-none leading-relaxed"
+                    />
+                  </div>
+                  <button
+                    onClick={handleProcessText}
+                    disabled={isParsingText || !rawText.trim()}
+                    className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[10px] uppercase tracking-wider"
+                  >
+                    {isParsingText ? (
+                      <>
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                        <span>MEMPROSES...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-3 h-3" />
+                        <span>PROSES TEKS</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
 
               {/* Panel Statistik Premium */}
               <div className="bg-zinc-900/20 border border-zinc-800/80 rounded-xl p-5 space-y-4">
